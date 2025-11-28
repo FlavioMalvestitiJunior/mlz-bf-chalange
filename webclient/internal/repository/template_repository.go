@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	"github.com/yourusername/bf-offers/webclient/internal/models"
+	"github.com/flaviomalvestitijunior/bf-offers/webclient/internal/models"
 )
 
 type TemplateRepository struct {
@@ -62,7 +62,7 @@ func (r *TemplateRepository) GetAllTemplates() ([]models.MessageTemplate, error)
 func (r *TemplateRepository) GetTemplateByID(id int) (*models.MessageTemplate, error) {
 	var t models.MessageTemplate
 	var schemaBytes []byte
-	
+
 	err := r.db.QueryRow(`
 		SELECT id, name, product_model, title_field, description_field, price_field,
 		       discount_field, details_fields, message_schema, sns_topic_arn, 
@@ -87,7 +87,7 @@ func (r *TemplateRepository) GetTemplateByID(id int) (*models.MessageTemplate, e
 	if err != nil {
 		return nil, err
 	}
-	
+
 	t.MessageSchema = string(schemaBytes)
 	return &t, nil
 }
@@ -106,8 +106,8 @@ func (r *TemplateRepository) CreateTemplate(t *models.MessageTemplate) error {
 		                               message_schema, sns_topic_arn, is_active)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		RETURNING id, created_at, updated_at
-	`, t.Name, t.ProductModel, t.TitleField, t.DescriptionField, t.PriceField, 
-	   t.DiscountField, t.DetailsFields, t.MessageSchema, t.SNSTopicARN, t.IsActive).Scan(
+	`, t.Name, t.ProductModel, t.TitleField, t.DescriptionField, t.PriceField,
+		t.DiscountField, t.DetailsFields, t.MessageSchema, t.SNSTopicARN, t.IsActive).Scan(
 		&t.ID,
 		&t.CreatedAt,
 		&t.UpdatedAt,
@@ -129,8 +129,8 @@ func (r *TemplateRepository) UpdateTemplate(t *models.MessageTemplate) error {
 		    message_schema = $8, sns_topic_arn = $9, is_active = $10
 		WHERE id = $11
 	`, t.Name, t.ProductModel, t.TitleField, t.DescriptionField, t.PriceField,
-	   t.DiscountField, t.DetailsFields, t.MessageSchema, t.SNSTopicARN, t.IsActive, t.ID)
-	
+		t.DiscountField, t.DetailsFields, t.MessageSchema, t.SNSTopicARN, t.IsActive, t.ID)
+
 	return err
 }
 

@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/yourusername/bf-offers/backend/internal/models"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/models"
 )
 
 type OfferMatcher struct{}
@@ -56,7 +56,7 @@ func (m *OfferMatcher) MatchOffer(offer *models.Offer, wishlists []models.Wishli
 				MatchType:          matchType,
 			}
 			notifications = append(notifications, notification)
-			log.Printf("Match found: Product '%s' for user %d (match type: %s)", 
+			log.Printf("Match found: Product '%s' for user %d (match type: %s)",
 				offer.ProductName, wishlist.TelegramID, matchType)
 		}
 	}
@@ -103,19 +103,19 @@ func (m *OfferMatcher) FormatNotificationMessage(notification *models.OfferNotif
 
 	msg.WriteString("🎉 *Oferta Encontrada!*\n\n")
 	msg.WriteString(fmt.Sprintf("📦 *Produto:* %s\n", notification.ProductName))
-	
+
 	if notification.Price > 0 {
 		msg.WriteString(fmt.Sprintf("💰 *Preço:* R$ %.2f\n", notification.Price))
 	}
-	
+
 	if notification.OriginalPrice > 0 && notification.OriginalPrice > notification.Price {
 		msg.WriteString(fmt.Sprintf("~~R$ %.2f~~\n", notification.OriginalPrice))
 	}
-	
+
 	if notification.DiscountPercentage > 0 {
 		msg.WriteString(fmt.Sprintf("🔥 *Desconto:* %d%%\n", notification.DiscountPercentage))
 	}
-	
+
 	if notification.CashbackPercentage > 0 {
 		msg.WriteString(fmt.Sprintf("💸 *Cashback:* %d%%\n", notification.CashbackPercentage))
 	}

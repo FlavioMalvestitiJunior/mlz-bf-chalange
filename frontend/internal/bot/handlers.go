@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/flaviomalvestitijunior/bf-offers/frontend/internal/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/yourusername/bf-offers/frontend/internal/models"
 )
 
 type BotHandler struct {
@@ -85,7 +85,7 @@ Eu vou te ajudar a monitorar ofertas e cashbacks de produtos!
 Vamos começar? Use /add para adicionar seu primeiro produto! 🚀`
 
 	h.sendMessage(message.Chat.ID, text)
-	
+
 	// Send user registration command to backend via Kafka
 	h.sendCommandToBackend(models.Command{
 		Type:       "register_user",
@@ -198,7 +198,7 @@ func (h *BotHandler) handleList(message *tgbotapi.Message) {
 		TelegramID: message.From.ID,
 		ChatID:     message.Chat.ID,
 	})
-	
+
 	// Backend will respond via Kafka with the list
 	h.sendMessage(message.Chat.ID, "🔍 Buscando sua lista...")
 }
@@ -234,19 +234,19 @@ func (h *BotHandler) SendNotification(notification *models.OfferNotification) er
 
 	msg.WriteString("🎉 *Oferta Encontrada!*\n\n")
 	msg.WriteString(fmt.Sprintf("📦 *Produto:* %s\n", notification.ProductName))
-	
+
 	if notification.Price > 0 {
 		msg.WriteString(fmt.Sprintf("💰 *Preço:* R$ %.2f\n", notification.Price))
 	}
-	
+
 	if notification.OriginalPrice > 0 && notification.OriginalPrice > notification.Price {
 		msg.WriteString(fmt.Sprintf("~~R$ %.2f~~\n", notification.OriginalPrice))
 	}
-	
+
 	if notification.DiscountPercentage > 0 {
 		msg.WriteString(fmt.Sprintf("🔥 *Desconto:* %d%%\n", notification.DiscountPercentage))
 	}
-	
+
 	if notification.CashbackPercentage > 0 {
 		msg.WriteString(fmt.Sprintf("💸 *Cashback:* %d%%\n", notification.CashbackPercentage))
 	}
@@ -297,7 +297,7 @@ func (h *BotHandler) SendDeleteResponse(response *models.DeleteResponse) error {
 // sendCommandToBackend sends a command to the backend via Kafka
 func (h *BotHandler) sendCommandToBackend(cmd models.Command) error {
 	cmd.Timestamp = time.Now()
-	
+
 	data, err := json.Marshal(cmd)
 	if err != nil {
 		log.Printf("Error marshaling command: %v", err)

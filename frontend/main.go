@@ -10,9 +10,9 @@ import (
 	"syscall"
 
 	"github.com/IBM/sarama"
+	"github.com/flaviomalvestitijunior/bf-offers/frontend/internal/bot"
+	"github.com/flaviomalvestitijunior/bf-offers/frontend/internal/consumer"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/yourusername/bf-offers/frontend/internal/bot"
-	"github.com/yourusername/bf-offers/frontend/internal/consumer"
 )
 
 func main() {
@@ -98,12 +98,12 @@ func main() {
 
 // Config holds application configuration
 type Config struct {
-	TelegramToken       string
-	KafkaBrokers        string
-	KafkaCommandTopic   string
-	KafkaResponseTopic  string
-	KafkaGroupID        string
-	Port                string
+	TelegramToken      string
+	KafkaBrokers       string
+	KafkaCommandTopic  string
+	KafkaResponseTopic string
+	KafkaGroupID       string
+	Port               string
 }
 
 // loadConfig loads configuration from environment variables

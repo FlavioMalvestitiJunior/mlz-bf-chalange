@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
-	"github.com/yourusername/bf-offers/frontend/internal/bot"
-	"github.com/yourusername/bf-offers/frontend/internal/models"
+	"github.com/flaviomalvestitijunior/bf-offers/frontend/internal/bot"
+	"github.com/flaviomalvestitijunior/bf-offers/frontend/internal/models"
 )
 
 type KafkaConsumer struct {

@@ -1,4 +1,4 @@
-module github.com/yourusername/bf-offers/frontend
+module github.com/flaviomalvestitijunior/bf-offers/frontend
 
 go 1.21
 

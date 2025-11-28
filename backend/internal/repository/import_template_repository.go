@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/yourusername/bf-offers/backend/internal/models"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/models"
 )
 
 type ImportTemplateRepository struct {

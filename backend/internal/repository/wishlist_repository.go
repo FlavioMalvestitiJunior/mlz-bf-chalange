@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/models"
 	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
-	"github.com/yourusername/bf-offers/backend/internal/models"
 )
 
 type WishlistRepository struct {
@@ -167,4 +167,3 @@ func (r *WishlistRepository) InvalidateUserCache(telegramID int64) {
 func (r *WishlistRepository) GetDB() *sql.DB {
 	return r.db
 }
-

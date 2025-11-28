@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/flaviomalvestitijunior/bf-offers/webclient/internal/models"
 	"github.com/go-redis/redis/v8"
-	"github.com/yourusername/bf-offers/webclient/internal/models"
 )
 
 type StatsRepository struct {
@@ -210,7 +210,7 @@ func (r *StatsRepository) BlacklistUser(userID int64) error {
 
 	// Update Redis
 	r.redis.Set(r.ctx, fmt.Sprintf("blacklist:%d", userID), "true", 0)
-	
+
 	return nil
 }
 
@@ -224,7 +224,7 @@ func (r *StatsRepository) UnblacklistUser(userID int64) error {
 
 	// Update Redis
 	r.redis.Del(r.ctx, fmt.Sprintf("blacklist:%d", userID))
-	
+
 	return nil
 }
 
@@ -256,6 +256,6 @@ func (r *StatsRepository) DeleteUser(userID int64) error {
 	// Clean up Redis
 	r.redis.Del(r.ctx, fmt.Sprintf("wishlist:%d", userID))
 	r.redis.Del(r.ctx, fmt.Sprintf("blacklist:%d", userID))
-	
+
 	return nil
 }

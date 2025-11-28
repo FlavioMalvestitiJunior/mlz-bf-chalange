@@ -8,22 +8,21 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/models"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/repository"
 	"github.com/tidwall/gjson"
-	"github.com/yourusername/bf-offers/backend/internal/models"
-	"github.com/yourusername/bf-offers/backend/internal/repository"
 )
 
 type ImportScheduler struct {
-	repo           *repository.ImportTemplateRepository
-	kafkaProducer  sarama.SyncProducer
-	kafkaTopic     string
-	interval       time.Duration
-	ctx            context.Context
-	cancel         context.CancelFunc
+	repo          *repository.ImportTemplateRepository
+	kafkaProducer sarama.SyncProducer
+	kafkaTopic    string
+	interval      time.Duration
+	ctx           context.Context
+	cancel        context.CancelFunc
 }
 
 func NewImportScheduler(
@@ -46,10 +45,10 @@ func NewImportScheduler(
 // Start begins the scheduler
 func (s *ImportScheduler) Start() {
 	log.Printf("Starting import scheduler with interval: %v", s.interval)
-	
+
 	// Run immediately on start
 	go s.runImports()
-	
+
 	ticker := time.NewTicker(s.interval)
 	go func() {
 		for {
@@ -73,7 +72,7 @@ func (s *ImportScheduler) Stop() {
 // runImports executes all active import templates
 func (s *ImportScheduler) runImports() {
 	log.Println("Running scheduled imports...")
-	
+
 	templates, err := s.repo.GetActiveTemplates()
 	if err != nil {
 		log.Printf("Error fetching active templates: %v", err)

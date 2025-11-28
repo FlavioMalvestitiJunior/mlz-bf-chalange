@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/flaviomalvestitijunior/bf-offers/webclient/internal/models"
+	"github.com/flaviomalvestitijunior/bf-offers/webclient/internal/repository"
 	"github.com/gorilla/mux"
-	"github.com/yourusername/bf-offers/webclient/internal/models"
-	"github.com/yourusername/bf-offers/webclient/internal/repository"
 )
 
 type TemplateHandler struct {

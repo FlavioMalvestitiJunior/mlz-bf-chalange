@@ -82,6 +82,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: backend
     container_name: backend
     depends_on:
       kafka:

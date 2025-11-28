@@ -13,19 +13,20 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/consumer"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/handler"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/matcher"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/models"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/producer"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/repository"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/scheduler"
 	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
-	"github.com/yourusername/bf-offers/backend/internal/consumer"
-	"github.com/yourusername/bf-offers/backend/internal/handler"
-	"github.com/yourusername/bf-offers/backend/internal/matcher"
-	"github.com/yourusername/bf-offers/backend/internal/models"
-	"github.com/yourusername/bf-offers/backend/internal/producer"
-	"github.com/yourusername/bf-offers/backend/internal/repository"
-	"github.com/yourusername/bf-offers/backend/internal/scheduler"
 )
 
 func main() {
 	log.Println("Starting Backend Service...")
+	ctx, cancel := context.WithCancel(context.Background())
 
 	// Load configuration from environment
 	config := loadConfig()
@@ -133,9 +134,9 @@ func main() {
 }
 
 // handleOffer processes an incoming offer
-func handleOffer(offer *models.Offer, repo *repository.WishlistRepository, 
+func handleOffer(offer *models.Offer, repo *repository.WishlistRepository,
 	matcher *matcher.OfferMatcher, producer *producer.KafkaProducer) error {
-	
+
 	log.Printf("Processing offer: %s - R$ %.2f", offer.ProductName, offer.Price)
 
 	// Save offer to database

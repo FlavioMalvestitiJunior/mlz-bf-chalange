@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/consumer"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/models"
+	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/repository"
 	"github.com/go-redis/redis/v8"
-	"github.com/yourusername/bf-offers/backend/internal/consumer"
-	"github.com/yourusername/bf-offers/backend/internal/models"
-	"github.com/yourusername/bf-offers/backend/internal/repository"
 )
 
 type CommandHandler struct {

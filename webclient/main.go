@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/flaviomalvestitijunior/bf-offers/webclient/internal/handlers"
+	"github.com/flaviomalvestitijunior/bf-offers/webclient/internal/repository"
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"github.com/rs/cors"
-	"github.com/yourusername/bf-offers/webclient/internal/handlers"
-	"github.com/yourusername/bf-offers/webclient/internal/repository"
 )
 
 func main() {
@@ -64,7 +64,7 @@ func main() {
 
 	// API routes
 	api := r.PathPrefix("/api").Subrouter()
-	
+
 	// Dashboard endpoints
 	api.HandleFunc("/stats", dashboardHandler.GetStats).Methods("GET")
 	api.HandleFunc("/users/active", dashboardHandler.GetActiveUsers).Methods("GET")
@@ -73,7 +73,7 @@ func main() {
 	api.HandleFunc("/users/{id}/blacklist", dashboardHandler.BlacklistUser).Methods("POST")
 	api.HandleFunc("/users/{id}/blacklist", dashboardHandler.UnblacklistUser).Methods("DELETE")
 	api.HandleFunc("/users/{id}", dashboardHandler.DeleteUser).Methods("DELETE")
-	
+
 	// Template endpoints
 	api.HandleFunc("/templates", templateHandler.GetAllTemplates).Methods("GET")
 	api.HandleFunc("/templates", templateHandler.CreateTemplate).Methods("POST")

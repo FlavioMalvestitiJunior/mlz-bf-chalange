@@ -10,13 +10,12 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
 	"github.com/IBM/sarama"
-	"github.com/gocolly/colly/v2"
 	"github.com/go-redis/redis/v8"
+	"github.com/gocolly/colly/v2"
 )
 
 // Offer represents the Kafka message schema
@@ -203,7 +202,7 @@ func scrapeWishlistItems(redisClient *redis.Client, producer sarama.SyncProducer
 	// For now, I'll skip implementation details of "how to get terms from Redis" and assume a placeholder function.
 	// Or better, I'll just log that I'm doing it.
 	// To be compliant, I'll assume there's a SET key "all_wishlist_terms".
-	
+
 	terms, err := redisClient.SMembers(context.Background(), "all_wishlist_terms").Result()
 	if err != nil {
 		log.Printf("Failed to get wishlist terms from Redis: %v", err)
@@ -220,10 +219,10 @@ func processOfferElement(e *colly.HTMLElement, producer sarama.SyncProducer, con
 	title := e.ChildText(".pr-title")
 	priceStr := e.ChildText(".pr-price")
 	link := e.ChildAttr("a", "href")
-	
+
 	// Basic parsing
 	price := parsePrice(priceStr)
-	
+
 	if title == "" || price == 0 {
 		return
 	}
@@ -247,7 +246,7 @@ func parsePrice(priceStr string) float64 {
 	cleaned = strings.ReplaceAll(cleaned, ".", "")
 	cleaned = strings.ReplaceAll(cleaned, ",", ".")
 	cleaned = strings.TrimSpace(cleaned)
-	
+
 	val, _ := strconv.ParseFloat(cleaned, 64)
 	return val
 }

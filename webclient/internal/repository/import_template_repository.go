@@ -3,9 +3,8 @@ package repository
 import (
 	"database/sql"
 	"encoding/json"
-	"time"
 
-	"github.com/yourusername/bf-offers/webclient/internal/models"
+	"github.com/flaviomalvestitijunior/bf-offers/webclient/internal/models"
 )
 
 type ImportTemplateRepository struct {

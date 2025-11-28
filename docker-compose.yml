@@ -50,6 +50,15 @@ services:
       timeout: 3s
       retries: 5
 
+  #Kafka-ui
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.example
+
   # PostgreSQL
 
   postgres-bot:

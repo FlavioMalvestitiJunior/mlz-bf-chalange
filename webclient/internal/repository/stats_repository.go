@@ -165,7 +165,7 @@ func (r *StatsRepository) GetUserWishlist(userID int64) ([]models.Wishlist, erro
 
 	// If not in cache, get from database
 	rows, err := r.db.Query(`
-		SELECT id, telegram_id, product_name, target_price, discount_percentage, created_at
+		SELECT id, telegram_id, product_name, target_price, coalesce(discount_percentage,0), created_at
 		FROM wishlists
 		WHERE telegram_id = $1
 		ORDER BY created_at DESC

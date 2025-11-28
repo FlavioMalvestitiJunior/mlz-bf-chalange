@@ -4,18 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
 	"github.com/IBM/sarama"
 	"github.com/go-redis/redis/v8"
-	"github.com/gocolly/colly/v2"
 )
 
 // Offer represents the Kafka message schema
@@ -38,6 +38,37 @@ type WishlistEvent struct {
 	TargetPrice        *float64  `json:"target_price,omitempty"`
 	DiscountPercentage *int      `json:"discount_percentage,omitempty"`
 	Timestamp          time.Time `json:"timestamp"`
+}
+
+// Promobit API Response Structures
+
+type PromobitSearchResponse struct {
+	Data struct {
+		Offers []PromobitOffer `json:"offers"`
+		Meta   struct {
+			CurrentPage int `json:"current_page"`
+			LastPage    int `json:"last_page"`
+		} `json:"meta"`
+	} `json:"data"`
+}
+
+type PromobitOffer struct {
+	ID          int     `json:"id"`
+	Title       string  `json:"title"`
+	Price       float64 `json:"price"`
+	OldPrice    float64 `json:"old_price"`
+	Description string  `json:"description"`
+	URL         string  `json:"url"`
+	IsActive    bool    `json:"is_active"`
+	Cashback    struct {
+		Percentage int `json:"percentage"`
+	} `json:"cashback"`
+}
+
+type PromobitHomeResponse struct {
+	PageProps struct {
+		Offers []PromobitOffer `json:"offers"`
+	} `json:"pageProps"`
 }
 
 func main() {
@@ -166,43 +197,118 @@ func (c *WishlistConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, cla
 	return nil
 }
 
-// Scrape Logic
+// Scrape Logic using Promobit API
 
 func scrapePromobitHome(producer sarama.SyncProducer, config Config) {
-	log.Println("Scraping Promobit Home...")
-	c := colly.NewCollector()
+	log.Println("Fetching Promobit Home via API...")
 
-	c.OnHTML(".pr-card-item", func(e *colly.HTMLElement) {
-		processOfferElement(e, producer, config)
-	})
+	// Use the Next.js data endpoint
+	resp, err := http.Get("https://www.promobit.com.br/_next/data/bcc3e837c1/index.json")
+	if err != nil {
+		log.Printf("Failed to fetch Promobit home: %v", err)
+		return
+	}
+	defer resp.Body.Close()
 
-	c.Visit("https://www.promobit.com.br/")
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Promobit home returned status: %d", resp.StatusCode)
+		return
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Failed to read response body: %v", err)
+		return
+	}
+
+	var homeResp PromobitHomeResponse
+	if err := json.Unmarshal(body, &homeResp); err != nil {
+		log.Printf("Failed to unmarshal home response: %v", err)
+		return
+	}
+
+	count := 0
+	for _, promobitOffer := range homeResp.PageProps.Offers {
+		// Only process active offers
+		if !promobitOffer.IsActive {
+			continue
+		}
+
+		offer := convertPromobitOffer(promobitOffer)
+		publishOffer(producer, offer, config.KafkaOffersTopic)
+		count++
+	}
+
+	log.Printf("Published %d offers from Promobit home", count)
 }
 
 func scrapePromobitSearch(producer sarama.SyncProducer, config Config, query string) {
-	log.Printf("Scraping Promobit Search for: %s", query)
-	c := colly.NewCollector()
+	log.Printf("Searching Promobit API for: %s", query)
 
-	c.OnHTML(".pr-card-item", func(e *colly.HTMLElement) {
-		processOfferElement(e, producer, config)
-	})
-
-	// Encode query
 	encodedQuery := url.QueryEscape(query)
-	c.Visit(fmt.Sprintf("https://www.promobit.com.br/buscar/?q=%s", encodedQuery))
+	page := 1
+	totalCount := 0
+
+	for {
+		apiURL := fmt.Sprintf("https://api.promobit.com.br/search/result/offers?q=%s&page=%d", encodedQuery, page)
+		
+		resp, err := http.Get(apiURL)
+		if err != nil {
+			log.Printf("Failed to fetch Promobit search page %d: %v", page, err)
+			break
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			log.Printf("Promobit search returned status: %d", resp.StatusCode)
+			resp.Body.Close()
+			break
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		
+		if err != nil {
+			log.Printf("Failed to read response body: %v", err)
+			break
+		}
+
+		var searchResp PromobitSearchResponse
+		if err := json.Unmarshal(body, &searchResp); err != nil {
+			log.Printf("Failed to unmarshal search response: %v", err)
+			break
+		}
+
+		// Process offers from this page
+		pageCount := 0
+		for _, promobitOffer := range searchResp.Data.Offers {
+			// Only process active offers
+			if !promobitOffer.IsActive {
+				continue
+			}
+
+			offer := convertPromobitOffer(promobitOffer)
+			publishOffer(producer, offer, config.KafkaOffersTopic)
+			pageCount++
+			totalCount++
+		}
+
+		log.Printf("Published %d active offers from page %d", pageCount, page)
+
+		// Check if there are more pages
+		if page >= searchResp.Data.Meta.LastPage {
+			break
+		}
+
+		page++
+		time.Sleep(1 * time.Second) // Polite delay between pages
+	}
+
+	log.Printf("Total published %d active offers for query: %s", totalCount, query)
 }
 
 func scrapeWishlistItems(redisClient *redis.Client, producer sarama.SyncProducer, config Config) {
 	log.Println("Scraping all wishlist items...")
-	// In a real scenario, we should fetch unique product names from DB or Redis set.
-	// Assuming we can get them from Redis if we stored them there.
-	// Since I don't have the Redis structure fully defined for "all wishlist items" (only user cache),
-	// I might need to query Postgres? But requirement says "ler o redis".
-	// I'll assume there is a set "wishlist_terms" in Redis or I should scan keys.
-	// For now, I'll skip implementation details of "how to get terms from Redis" and assume a placeholder function.
-	// Or better, I'll just log that I'm doing it.
-	// To be compliant, I'll assume there's a SET key "all_wishlist_terms".
-
+	
 	terms, err := redisClient.SMembers(context.Background(), "all_wishlist_terms").Result()
 	if err != nil {
 		log.Printf("Failed to get wishlist terms from Redis: %v", err)
@@ -215,40 +321,17 @@ func scrapeWishlistItems(redisClient *redis.Client, producer sarama.SyncProducer
 	}
 }
 
-func processOfferElement(e *colly.HTMLElement, producer sarama.SyncProducer, config Config) {
-	title := e.ChildText(".pr-title")
-	priceStr := e.ChildText(".pr-price")
-	link := e.ChildAttr("a", "href")
-
-	// Basic parsing
-	price := parsePrice(priceStr)
-
-	if title == "" || price == 0 {
-		return
-	}
-
-	offer := &Offer{
-		ProductName:        title,
-		Price:              price,
-		OriginalPrice:      0, // Need to find selector
-		Details:            link,
-		CashbackPercentage: 0, // Need to find selector
-		Source:             "promobit-scraper",
+func convertPromobitOffer(promobitOffer PromobitOffer) *Offer {
+	return &Offer{
+		ID:                 promobitOffer.ID,
+		ProductName:        promobitOffer.Title,
+		Price:              promobitOffer.Price,
+		OriginalPrice:      promobitOffer.OldPrice,
+		Details:            promobitOffer.Description,
+		CashbackPercentage: promobitOffer.Cashback.Percentage,
+		Source:             "promobit-api",
 		ReceivedAt:         time.Now(),
 	}
-
-	publishOffer(producer, offer, config.KafkaOffersTopic)
-}
-
-func parsePrice(priceStr string) float64 {
-	// Remove "R$", ".", replace "," with "."
-	cleaned := strings.ReplaceAll(priceStr, "R$", "")
-	cleaned = strings.ReplaceAll(cleaned, ".", "")
-	cleaned = strings.ReplaceAll(cleaned, ",", ".")
-	cleaned = strings.TrimSpace(cleaned)
-
-	val, _ := strconv.ParseFloat(cleaned, 64)
-	return val
 }
 
 func publishOffer(producer sarama.SyncProducer, offer *Offer, topic string) {
@@ -266,7 +349,7 @@ func publishOffer(producer sarama.SyncProducer, offer *Offer, topic string) {
 	if _, _, err := producer.SendMessage(msg); err != nil {
 		log.Printf("Failed to publish offer: %v", err)
 	} else {
-		log.Printf("Published offer: %s", offer.ProductName)
+		log.Printf("Published offer: %s (R$ %.2f)", offer.ProductName, offer.Price)
 	}
 }
 

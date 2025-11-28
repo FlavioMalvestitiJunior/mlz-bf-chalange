@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Templates - Offer Bot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">
+                <div class="logo-icon">🎁</div>
+                <div class="logo-text">
+                    <h1>Offer Bot Dashboard</h1>
+                    <p>Monitoramento de Ofertas</p>
+                </div>
+            </a>
+            <nav class="nav">
+                <a href="/" class="nav-link">📊 Dashboard</a>
+                <a href="/templates.html" class="nav-link active">📝 Templates</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Header with Add Button -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <span class="card-icon">📝</span>
+                    Templates de Mensagens SNS
+                </h2>
+                <button class="btn btn-primary" onclick="openModal()">
+                    ➕ Novo Template
+                </button>
+            </div>
+
+            <div id="templatesTableContainer">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for Create/Edit Template -->
+    <div id="templateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Novo Template</h2>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+
+            <form id="templateForm" onsubmit="saveTemplate(event)">
+                <input type="hidden" id="templateId">
+
+                <div class="form-group">
+                    <label class="form-label" for="templateName">Nome do Template *</label>
+                    <input type="text" id="templateName" class="form-input" required placeholder="Ex: iPhone 15 Promo">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="productModel">Modelo do Produto *</label>
+                    <input type="text" id="productModel" class="form-input" required
+                        placeholder="Ex: iPhone 15 Pro Max">
+                </div>
+
+                <hr style="border: 1px solid var(--border-color); margin: 1.5rem 0;">
+
+                <h3 style="margin-bottom: 1rem; color: var(--secondary-pink);">📋 Campos da Oferta</h3>
+
+                <div class="form-group">
+                    <label class="form-label" for="titleField">Campo Título *</label>
+                    <input type="text" id="titleField" class="form-input" required
+                        placeholder="Ex: product_name ou title">
+                    <small style="color: var(--text-light);">Nome do campo JSON que contém o título do produto</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="descriptionField">Campo Descrição</label>
+                    <input type="text" id="descriptionField" class="form-input"
+                        placeholder="Ex: description ou details">
+                    <small style="color: var(--text-light);">Nome do campo JSON que contém a descrição
+                        (opcional)</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="priceField">Campo Preço *</label>
+                    <input type="text" id="priceField" class="form-input" required
+                        placeholder="Ex: price ou current_price">
+                    <small style="color: var(--text-light);">Nome do campo JSON que contém o preço</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="discountField">Campo Desconto</label>
+                    <input type="text" id="discountField" class="form-input"
+                        placeholder="Ex: discount_percentage ou discount">
+                    <small style="color: var(--text-light);">Nome do campo JSON que contém o desconto (opcional)</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="detailsFields">Campos para Busca/Detalhes</label>
+                    <input type="text" id="detailsFields" class="form-input"
+                        placeholder='Ex: ["brand", "category", "store"]'>
+                    <small style="color: var(--text-light);">Lista de campos JSON para concatenar na busca (formato:
+                        array JSON)</small>
+                </div>
+
+                <hr style="border: 1px solid var(--border-color); margin: 1.5rem 0;">
+
+                <div class="form-group">
+                    <label class="form-label" for="messageSchema">Schema Completo da Mensagem (JSON) *</label>
+                    <textarea id="messageSchema" class="form-textarea" required
+                        placeholder='{"product_name": "iPhone 15", "price": 4500, "discount_percentage": 25}'></textarea>
+                    <small style="color: var(--text-light);">Exemplo completo da estrutura JSON que será recebida do
+                        SNS</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="snsTopicArn">SNS Topic ARN (Opcional)</label>
+                    <input type="text" id="snsTopicArn" class="form-input"
+                        placeholder="arn:aws:sns:us-east-1:123456789012:my-topic">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-checkbox">
+                        <input type="checkbox" id="isActive" checked>
+                        <span>Template Ativo</span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        💾 Salvar Template
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/templates.js"></script>
+</body>
+
+</html>

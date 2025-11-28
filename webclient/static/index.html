@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Offer Bot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">
+                <div class="logo-icon">🎁</div>
+                <div class="logo-text">
+                    <h1>Offer Bot Dashboard</h1>
+                    <p>Monitoramento de Ofertas</p>
+                </div>
+            </a>
+            <nav class="nav">
+                <a href="/" class="nav-link active">📊 Dashboard</a>
+                <a href="/templates.html" class="nav-link">📝 Templates</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Stats Grid -->
+        <div class="stats-grid fade-in">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="activeUsers">-</div>
+                <div class="stat-label">Usuários Ativos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👤</div>
+                <div class="stat-value" id="totalUsers">-</div>
+                <div class="stat-label">Total de Usuários</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">❤️</div>
+                <div class="stat-value" id="totalWishlists">-</div>
+                <div class="stat-label">Listas de Desejos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎉</div>
+                <div class="stat-value" id="recentOffers">-</div>
+                <div class="stat-label">Ofertas (24h)</div>
+            </div>
+        </div>
+
+        <!-- Active Users Table -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <span class="card-icon">👥</span>
+                    Usuários Ativos (24h)
+                </h2>
+                <div class="actions">
+                    <div class="search-box">
+                        <input type="text" id="userSearch" placeholder="Buscar usuário..."
+                            onkeyup="searchUsers(this.value)">
+                    </div>
+                    <button class="btn btn-secondary" onclick="loadData()">
+                        🔄 Atualizar
+                    </button>
+                </div>
+            </div>
+
+            <div id="usersTableContainer">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Wishlist Modal -->
+    <div id="wishlistModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Lista de Desejos</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="wishlistContent">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+
+</html>

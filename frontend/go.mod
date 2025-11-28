@@ -1,4 +1,4 @@
-module github.com/flaviomalvestitijunior/bf-offers/frontend
+module github.com/FlavioMalvestitiJunior/bf-offers/frontend
 
 go 1.21
 

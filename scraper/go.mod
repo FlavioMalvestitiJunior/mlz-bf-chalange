@@ -1,4 +1,4 @@
-module github.com/flaviomalvestitijunior/bf-offers/scraper
+module github.com/FlavioMalvestitiJunior/bf-offers/scraper
 
 go 1.21
 

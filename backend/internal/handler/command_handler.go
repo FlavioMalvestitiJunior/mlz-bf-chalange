@@ -7,10 +7,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/consumer"
+	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/models"
+	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/repository"
 	"github.com/IBM/sarama"
-	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/consumer"
-	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/models"
-	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/repository"
 	"github.com/go-redis/redis/v8"
 )
 

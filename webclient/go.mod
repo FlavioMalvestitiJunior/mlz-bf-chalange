@@ -1,4 +1,4 @@
-module github.com/flaviomalvestitijunior/bf-offers/webclient
+module github.com/FlavioMalvestitiJunior/bf-offers/webclient
 
 go 1.21
 

@@ -13,13 +13,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/consumer"
-	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/handler"
-	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/matcher"
-	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/models"
-	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/producer"
-	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/repository"
-	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/scheduler"
+	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/consumer"
+	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/handler"
+	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/matcher"
+	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/models"
+	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/producer"
+	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/repository"
 	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 )
@@ -27,7 +26,6 @@ import (
 func main() {
 	log.Println("Starting Backend Service...")
 	ctx, cancel := context.WithCancel(context.Background())
-
 	// Load configuration from environment
 	config := loadConfig()
 
@@ -64,26 +62,6 @@ func main() {
 
 	// Initialize command handler
 	cmdHandler := handler.NewCommandHandler(db, redisClient, kafkaResponseWriter, config.KafkaNotificationTopic, config.KafkaWishlistEventsTopic)
-
-	// Initialize import template repository
-	importRepo := repository.NewImportTemplateRepository(db)
-
-	// Initialize Kafka producer for import scheduler (offers topic)
-	kafkaOffersProducer, err := producer.NewKafkaWriter(strings.Split(config.KafkaBrokers, ","))
-	if err != nil {
-		log.Fatalf("Failed to create Kafka offers producer: %v", err)
-	}
-	defer kafkaOffersProducer.Close()
-
-	// Initialize and start import scheduler (10 minute interval)
-	importScheduler := scheduler.NewImportScheduler(
-		importRepo,
-		kafkaOffersProducer,
-		config.KafkaOffersTopic,
-		10, // 10 minutes
-	)
-	importScheduler.Start()
-	defer importScheduler.Stop()
 
 	// Start command consumer
 	err = consumer.StartConsumerGroup(
@@ -197,9 +175,9 @@ func loadConfig() Config {
 		RedisDB:                  0,
 		PostgresHost:             getEnv("POSTGRES_HOST", "postgres"),
 		PostgresPort:             getEnv("POSTGRES_PORT", "5432"),
-		PostgresUser:             getEnv("POSTGRES_USER", "offerbot"),
-		PostgresPass:             getEnv("POSTGRES_PASSWORD", "offerbot123"),
-		PostgresDB:               getEnv("POSTGRES_DB", "offerbot"),
+		PostgresUser:             getEnv("POSTGRES_USER", "postgres"),
+		PostgresPass:             getEnv("POSTGRES_PASSWORD", "postgres"),
+		PostgresDB:               getEnv("POSTGRES_DB", "postgres"),
 		Port:                     getEnv("BACKEND_PORT", "8080"),
 	}
 }

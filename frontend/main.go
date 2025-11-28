@@ -9,9 +9,9 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/FlavioMalvestitiJunior/bf-offers/frontend/internal/bot"
+	"github.com/FlavioMalvestitiJunior/bf-offers/frontend/internal/consumer"
 	"github.com/IBM/sarama"
-	"github.com/flaviomalvestitijunior/bf-offers/frontend/internal/bot"
-	"github.com/flaviomalvestitijunior/bf-offers/frontend/internal/consumer"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 

@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/flaviomalvestitijunior/bf-offers/webclient/internal/handlers"
-	"github.com/flaviomalvestitijunior/bf-offers/webclient/internal/repository"
+	"github.com/FlavioMalvestitiJunior/bf-offers/webclient/internal/handlers"
+	"github.com/FlavioMalvestitiJunior/bf-offers/webclient/internal/repository"
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"

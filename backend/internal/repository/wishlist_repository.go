@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/models"
+	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/models"
 	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 )

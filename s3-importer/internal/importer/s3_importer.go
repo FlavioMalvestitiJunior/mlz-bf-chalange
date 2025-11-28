@@ -1,7 +1,6 @@
-package scheduler
+package importer
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,80 +9,47 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/models"
-	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/repository"
+	"github.com/FlavioMalvestitiJunior/bf-offers/s3-importer/internal/models"
+	"github.com/FlavioMalvestitiJunior/bf-offers/s3-importer/internal/repository"
 	"github.com/IBM/sarama"
 	"github.com/tidwall/gjson"
 )
 
-type ImportScheduler struct {
+type S3Importer struct {
 	repo          *repository.ImportTemplateRepository
 	kafkaProducer sarama.SyncProducer
 	kafkaTopic    string
-	interval      time.Duration
-	ctx           context.Context
-	cancel        context.CancelFunc
 }
 
-func NewImportScheduler(
+func NewS3Importer(
 	repo *repository.ImportTemplateRepository,
 	kafkaProducer sarama.SyncProducer,
 	kafkaTopic string,
-	intervalMinutes int,
-) *ImportScheduler {
-	ctx, cancel := context.WithCancel(context.Background())
-	return &ImportScheduler{
+) *S3Importer {
+	return &S3Importer{
 		repo:          repo,
 		kafkaProducer: kafkaProducer,
 		kafkaTopic:    kafkaTopic,
-		interval:      time.Duration(intervalMinutes) * time.Minute,
-		ctx:           ctx,
-		cancel:        cancel,
 	}
 }
 
-// Start begins the scheduler
-func (s *ImportScheduler) Start() {
-	log.Printf("Starting import scheduler with interval: %v", s.interval)
-
-	// Run immediately on start
-	go s.runImports()
-
-	ticker := time.NewTicker(s.interval)
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				s.runImports()
-			case <-s.ctx.Done():
-				ticker.Stop()
-				log.Println("Import scheduler stopped")
-				return
-			}
-		}
-	}()
-}
-
-// Stop stops the scheduler
-func (s *ImportScheduler) Stop() {
-	s.cancel()
-}
-
-// runImports executes all active import templates
-func (s *ImportScheduler) runImports() {
-	log.Println("Running scheduled imports...")
+// Run executes all active import templates once
+func (s *S3Importer) Run() error {
+	log.Println("Starting S3 import job...")
 
 	templates, err := s.repo.GetActiveTemplates()
 	if err != nil {
-		log.Printf("Error fetching active templates: %v", err)
-		return
+		return fmt.Errorf("failed to fetch active templates: %w", err)
 	}
 
 	if len(templates) == 0 {
 		log.Println("No active import templates found")
-		return
+		return nil
 	}
 
+	log.Printf("Found %d active templates to process", len(templates))
+
+	successCount := 0
 	for _, template := range templates {
 		if err := s.processTemplate(&template); err != nil {
 			log.Printf("Error processing template %s: %v", template.Name, err)
@@ -92,14 +58,16 @@ func (s *ImportScheduler) runImports() {
 			if err := s.repo.UpdateLastRunAt(template.ID); err != nil {
 				log.Printf("Error updating last_run_at for template %s: %v", template.Name, err)
 			}
+			successCount++
 		}
 	}
 
-	log.Printf("Completed scheduled imports for %d templates", len(templates))
+	log.Printf("Completed S3 import job: %d/%d templates processed successfully", successCount, len(templates))
+	return nil
 }
 
 // processTemplate fetches JSON from S3 and produces to Kafka
-func (s *ImportScheduler) processTemplate(template *models.ImportTemplate) error {
+func (s *S3Importer) processTemplate(template *models.ImportTemplate) error {
 	log.Printf("Processing template: %s (URL: %s)", template.Name, template.S3URL)
 
 	// Fetch JSON from S3 URL
@@ -168,7 +136,7 @@ func (s *ImportScheduler) processTemplate(template *models.ImportTemplate) error
 }
 
 // mapJSONToOffer maps JSON fields to Offer model using mapping schema
-func (s *ImportScheduler) mapJSONToOffer(jsonStr string, mapping map[string]string) (*models.Offer, error) {
+func (s *S3Importer) mapJSONToOffer(jsonStr string, mapping map[string]string) (*models.Offer, error) {
 	offer := &models.Offer{
 		ReceivedAt: time.Now(),
 	}
@@ -242,7 +210,7 @@ func (s *ImportScheduler) mapJSONToOffer(jsonStr string, mapping map[string]stri
 }
 
 // produceOffer sends an offer to Kafka
-func (s *ImportScheduler) produceOffer(offer *models.Offer) error {
+func (s *S3Importer) produceOffer(offer *models.Offer) error {
 	offerJSON, err := json.Marshal(offer)
 	if err != nil {
 		return fmt.Errorf("failed to marshal offer: %w", err)

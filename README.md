@@ -71,8 +71,9 @@ Sistema distribuído de monitoramento de ofertas e cashbacks via Telegram Bot, c
 ### Importação S3
 - 📥 **Importação automática** de ofertas de arquivos JSON no S3
 - 🗺️ **Mapeamento flexível** de campos JSON para modelo interno
-- ⏰ **Scheduler** executa importações a cada 10 minutos
+- ⏰ **Serviço agendado** - executa a cada 10 minutos via cron job
 - 🎯 **Suporte a JSON paths** - mapeia campos aninhados (ex: `data.product.name`)
+- 🔄 **Independente** - serviço separado do backend principal
 
 ### Dashboard Web
 - 📊 **Dashboard de estatísticas** - visualize métricas do sistema
@@ -138,6 +139,32 @@ docker-compose up -d
 ```bash
 docker-compose build
 docker-compose up -d
+```
+
+### Configurar S3 Importer (Cron Job)
+
+O S3 Importer roda como um job agendado separado:
+
+**Linux/Mac:**
+```bash
+# Adicionar ao crontab (executar a cada 10 minutos)
+crontab -e
+
+# Adicionar linha:
+*/10 * * * * cd /caminho/para/bf-offers && docker-compose run --rm s3-importer >> /var/log/s3-importer.log 2>&1
+```
+
+**Windows (Task Scheduler):**
+1. Abra o Agendador de Tarefas
+2. Criar Tarefa Básica
+3. Nome: "S3 Importer"
+4. Gatilho: Repetir a cada 10 minutos
+5. Ação: Executar `run-s3-importer.bat`
+
+**Execução Manual:**
+```bash
+# Testar uma vez
+docker-compose run --rm s3-importer
 ```
 
 ### Verificar status dos serviços
@@ -333,6 +360,16 @@ bf-offers/
 │   ├── Dockerfile             # Docker Build
 │   └── go.mod                 # Dependencies
 │
+├── s3-importer/                # S3 Importer Service (Go)
+│   ├── internal/
+│   │   ├── models/            # Data Models
+│   │   ├── repository/        # Data Access Layer
+│   │   └── importer/          # Import Logic
+│   ├── main.go                # Entry Point
+│   ├── Dockerfile             # Docker Build
+│   ├── go.mod                 # Dependencies
+│   └── README.md              # Service Documentation
+│
 ├── webclient/                  # Webclient Service (Go)
 │   ├── internal/
 │   │   ├── handlers/          # HTTP Handlers
@@ -349,6 +386,8 @@ bf-offers/
 ├── docker-compose.yml          # Orchestration
 ├── init.sql                    # Database Schema
 ├── .env.example                # Environment Template
+├── run-s3-importer.sh          # Cron script (Linux/Mac)
+├── run-s3-importer.bat         # Cron script (Windows)
 └── README.md                   # This file
 ```
 

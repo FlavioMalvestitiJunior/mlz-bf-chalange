@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flaviomalvestitijunior/bf-offers/webclient/internal/models"
+	"github.com/FlavioMalvestitiJunior/bf-offers/webclient/internal/models"
 	"github.com/go-redis/redis/v8"
 )
 

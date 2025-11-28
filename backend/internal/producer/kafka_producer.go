@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/FlavioMalvestitiJunior/bf-offers/backend/internal/models"
 	"github.com/IBM/sarama"
-	"github.com/flaviomalvestitijunior/bf-offers/backend/internal/models"
 )
 
 type KafkaProducer struct {

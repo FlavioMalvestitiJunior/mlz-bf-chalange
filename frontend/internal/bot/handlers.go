@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/FlavioMalvestitiJunior/bf-offers/frontend/internal/models"
 	"github.com/IBM/sarama"
-	"github.com/flaviomalvestitijunior/bf-offers/frontend/internal/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 

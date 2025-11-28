@@ -24,14 +24,8 @@ services:
     ports:
       - "9092:9092"
       - "29092:29092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    env_file:
+      - .env.example
     volumes:
       - kafka-data:/var/lib/kafka/data
     restart: unless-stopped
@@ -58,21 +52,19 @@ services:
 
   # PostgreSQL
 
-  postgres:
+  postgres-bot:
     image: postgres:15-alpine
-    container_name: postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-offerbot}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-offerbot123}
-      POSTGRES_DB: ${POSTGRES_DB:-offerbot}
+    container_name: postgres-bot
+    env_file:
+      - .env.example
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-bot-data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-offerbot}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -90,7 +82,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      postgres:
+      postgres-bot:
         condition: service_healthy
     env_file:
       - .env.example
@@ -118,7 +110,7 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-      postgres:
+      postgres-bot:
         condition: service_healthy
     env_file:
       - .env.example
@@ -188,7 +180,7 @@ services:
       dockerfile: Dockerfile
     container_name: webclient
     depends_on:
-      postgres:
+      postgres-bot:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -211,9 +203,34 @@ services:
       timeout: 5s
       retries: 3
 
+  s3-importer:
+    build:
+      context: ./s3-importer
+      dockerfile: Dockerfile
+    container_name: s3-importer
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres-bot:
+        condition: service_healthy
+    env_file:
+      - .env.example
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 64M
+        reservations:
+          cpus: '0.05'
+          memory: 32M
+    # This service runs once and exits. Use a cron job or external scheduler to run it every 10 minutes
+    # For Docker Compose, you can use: docker-compose run --rm s3-importer
+    # Or set up a cron job on the host: */10 * * * * docker-compose -f /path/to/docker-compose.yml run --rm s3-importer
+
 volumes:
   zookeeper-data:
   zookeeper-logs:
   kafka-data:
   redis-data:
-  postgres-data:
+  postgres-bot-data:

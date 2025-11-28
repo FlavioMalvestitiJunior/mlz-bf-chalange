@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	"github.com/flaviomalvestitijunior/bf-offers/webclient/internal/models"
+	"github.com/FlavioMalvestitiJunior/bf-offers/webclient/internal/models"
 )
 
 type ImportTemplateRepository struct {
